@@ -29,7 +29,7 @@ def borderImg(link, icon, on, title, tooltip=None):
     """
     if on:
         fmt = '''<a class=hitem title="%s" href="%s">\
-              <img valign=bottom style='border: 1px solid #aaa;' src="qrc:/icons/%s.png"> %s</a>'''
+              <img valign=bottom style='height: 16px; ankiborder: 1px solid #aaa;' src="qrc:/icons/%s.png"> %s</a>'''
     else:
         fmt = '''<a class=hitem title="%s" href="%s">\
               <img style="padding: 1px;" valign=bottom src="qrc:/icons/%s.png"> %s</a>'''
@@ -44,8 +44,8 @@ def setupFastRepositionButtons(self):
         mf = self.web.page().mainFrame()
         buttonsrow = mf.findFirstElement('a.hitem').parent()
         buttons = buttonsrow.toInnerXml();
-        buttons += borderImg("mvupone", "add16", True, _("Move up")) + \
-                   borderImg("mvdownone", "add16", True, _("Move down"))
+        buttons += borderImg("mvupone", "arrow-up", True, _("Move up")) + \
+                   borderImg("mvdownone", "arrow-down", True, _("Move down"))
         buttonsrow.setInnerXml(buttons)
 
 def fastRepositionLinkHandler(self, l):
