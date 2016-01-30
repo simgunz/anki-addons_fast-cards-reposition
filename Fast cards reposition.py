@@ -55,6 +55,10 @@ def fastRepositionLinkHandler(self, l):
         self.browser.moveCard(-1);
     elif l == "mvdownone":
         self.browser.moveCard(1);
+    #Update the due position of the next card added.
+    #This guarantees that the new cards are added a the end.
+    self.browser.col.conf['nextPos'] = self.browser.col.db.scalar(
+            "select max(due)+1 from cards where type = 0") or 0
 
 def moveCard(self, pos):
     revs = self.col.conf['sortBackwards']
