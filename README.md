@@ -1,5 +1,5 @@
-Editor max image height
-=======================
+Fast cards reposition
+=====================
 
 This add on allows to reposition new cards (changing the due field) in a fast way from the browser view (without using the reposition tool).
 
