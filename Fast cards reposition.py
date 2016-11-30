@@ -20,6 +20,8 @@ from anki import hooks
 from anki.utils import ids2str
 
 from aqt import browser
+from aqt.qt import *
+from aqt.utils import shortcut
 
 def borderImg(link, icon, on, title, tooltip=None):
     """Draw a button for the browser toolbar
@@ -44,9 +46,9 @@ def setupFastRepositionButtons(self):
         mf = self.web.page().mainFrame()
         buttonsrow = mf.findFirstElement('a.hitem').parent()
         buttons = buttonsrow.toInnerXml();
-        buttons += borderImg("mvupone", "arrow-up", True, _("Move up")) + \
-                   borderImg("mvdownone", "arrow-down", True, _("Move down")) + \
-                   borderImg("mvtotop", "view-sort-descending", True, _("Move to top"))
+        buttons += borderImg("mvupone", "arrow-up", True, _("Move up"), shortcut(_("Move up (ALT+Up)"))) + \
+                   borderImg("mvdownone", "arrow-down", True, _("Move down"), shortcut(_("Move down (ALT+Down)"))) + \
+                   borderImg("mvtotop", "view-sort-descending", True, "Move to top", shortcut(_("Move to top (ALT+0)")))
         buttonsrow.setInnerXml(buttons)
 
 def fastRepositionLinkHandler(self, l):
@@ -119,6 +121,12 @@ def moveCard(self, pos):
     self.mw.requireReset()
     self.model.endReset()
 
+def moveCardUp(self):
+    self.moveCard(-1)
+
+def moveCardDown(self):
+    self.moveCard(1)
+
 def moveCardToTop(self):
     #Get only new cards and exit if none are selected
     cids = self.selectedCards()
@@ -137,10 +145,23 @@ def moveCardToTop(self):
     self.mw.requireReset()
     self.model.endReset()
 
+def onSetupMenus(self):
+    #Setup shortcuts
+    self.moveuponeShct = QShortcut(QKeySequence("Alt+Up"), self)
+    self.connect(self.moveuponeShct, SIGNAL("activated()"), self.moveCardUp)
+    self.movedownoneShct = QShortcut(QKeySequence("Alt+Down"), self)
+    self.connect(self.movedownoneShct, SIGNAL("activated()"), self.moveCardDown)
+    self.movetotopShct = QShortcut(QKeySequence("Alt+0"), self)
+    self.connect(self.movetotopShct, SIGNAL("activated()"), self.moveCardToTop)
+
+
+browser.Browser.moveCard = moveCard
+browser.Browser.moveCardUp = moveCardUp
+browser.Browser.moveCardDown = moveCardDown
+browser.Browser.moveCardToTop = moveCardToTop
 
 browser.BrowserToolbar.draw = hooks.wrap(
     browser.BrowserToolbar.draw, setupFastRepositionButtons)
 browser.BrowserToolbar._linkHandler = hooks.wrap(
     browser.BrowserToolbar._linkHandler, fastRepositionLinkHandler)
-browser.Browser.moveCard = moveCard
-browser.Browser.moveCardToTop = moveCardToTop
+hooks.addHook("browser.setupMenus", onSetupMenus)
