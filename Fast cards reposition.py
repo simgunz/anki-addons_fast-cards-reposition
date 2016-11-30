@@ -45,16 +45,20 @@ def setupFastRepositionButtons(self):
         buttonsrow = mf.findFirstElement('a.hitem').parent()
         buttons = buttonsrow.toInnerXml();
         buttons += borderImg("mvupone", "arrow-up", True, _("Move up")) + \
-                   borderImg("mvdownone", "arrow-down", True, _("Move down"))
+                   borderImg("mvdownone", "arrow-down", True, _("Move down")) + \
+                   borderImg("mvtotop", "view-sort-descending", True, _("Move to top"))
         buttonsrow.setInnerXml(buttons)
 
 def fastRepositionLinkHandler(self, l):
     """Extends the method _linkHandler in browser.BrowserToolbar in order to manage the two new actions
     """
     if l == "mvupone":
-        self.browser.moveCard(-1);
+        self.browser.moveCard(-1)
     elif l == "mvdownone":
-        self.browser.moveCard(1);
+        self.browser.moveCard(1)
+    elif l == "mvtotop":
+        self.browser.moveCardToTop()
+
     #Update the due position of the next card added.
     #This guarantees that the new cards are added a the end.
     self.browser.col.conf['nextPos'] = self.browser.col.db.scalar(
@@ -115,9 +119,28 @@ def moveCard(self, pos):
     self.mw.requireReset()
     self.model.endReset()
 
+def moveCardToTop(self):
+    #Get only new cards and exit if none are selected
+    cids = self.selectedCards()
+    cids2 = self.col.db.list(
+            "select id from cards where type = 0 and id in " + ids2str(cids))
+    if not cids2:
+        return
+
+    #Perform repositioning. Copied from browser.Browser repositon method. Should be updated is changed upstream
+    self.model.beginReset()
+    self.mw.checkpoint(_("Reposition"))
+    self.col.sched.sortCards(
+        cids, start=0, step=1,
+        shuffle=0, shift=1)
+    self.onSearch(reset=False)
+    self.mw.requireReset()
+    self.model.endReset()
+
 
 browser.BrowserToolbar.draw = hooks.wrap(
     browser.BrowserToolbar.draw, setupFastRepositionButtons)
 browser.BrowserToolbar._linkHandler = hooks.wrap(
     browser.BrowserToolbar._linkHandler, fastRepositionLinkHandler)
 browser.Browser.moveCard = moveCard
+browser.Browser.moveCardToTop = moveCardToTop
